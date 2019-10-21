@@ -191,7 +191,7 @@ class playGame extends Phaser.Scene{
   	} else {
   		if(this.gameStarted){
 	    	if(this.cursors.space.isDown && this.player.body.touching.down){
-	    		this.player.setVelocityY(-400);
+	    		this.player.setVelocityY(-425);
 	    	}
 
 	    	this.recycleBackground();
