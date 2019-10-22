@@ -250,7 +250,7 @@ class playGame extends Phaser.Scene{
 
 		  	let rightMostTrashbin = this.getRightMostTrashbin();
 				if(rightMostTrashbin < game.config.width*(0.75)){
-					if(this.numJumped >=1 ){// && this.numJumped%5==0){
+					if(this.numJumped >=10 && this.numJumped%5==0){
 						this.addRecyclebin();
 					} else {
 						this.addTrashbin();
