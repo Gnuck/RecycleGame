@@ -57,10 +57,10 @@ class playGame extends Phaser.Scene{
 		this.groundBody;
     this.player;
     this.trashbinGroup;
+    this.recyclebinGroup;
     this.background;
     this.victory = false;
     this.hitRecycleBin;
-    this.playerRecycleCollider;
     this.cursors;
     this.gameStarted = false;
     this.numJumped = 0;
@@ -77,33 +77,20 @@ class playGame extends Phaser.Scene{
     this.resetLabel;
 
     this.gameOver = false;
+
+    this.onCompleteHandler;
 	}
 
 	create() {
 		//background images
 		this.backgroundGroup = this.add.group();
 
-  	// this.background = this.add.image(164, 166, 'background').setScale(1);
-
-  	//this.add.image(180, 100, 'clouds').setScale(0.3);
-
-  // 	this.anims.create({
-		// 	key: 'closeBin',
-		// 	frames: [
-		// 			{ key: 'recyclebinClosed', frame: null }
-		// 	],
-		// 	frameRate: 2,
-		// 	repeat: false,
-		// });
-
   	this.cloudGroup = this.add.group();
 
   	//physical ground body
   	this.groundBody = this.physics.add.staticGroup();
   	this.groundBody.create(200,355, 'platform').setScale(4).refreshBody();
-  	
-  	// this.groundBody.refreshBody();
-  	
+  	  	
   	//player
     this.player = this.physics.add.sprite(100, 200, 'bottle').setScale(0.3);
 		this.player.setCollideWorldBounds(true);
@@ -131,58 +118,23 @@ class playGame extends Phaser.Scene{
 				this.victory = true;
 			} else { }
 		};
-		this.playerRecycleCollider = this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap);
-		//alternative use of overlap instead of collide function
-		var parent = this;
 
-		var onCompleteHandler = function(tween, targets, image){
+		this.onCompleteHandler = function(tween, targets, image){
 			image.anims.play('closeBin', true);
 			parent.add.image(game.config.width/2, game.config.height/2, 'victoryModal').setScale(0.5);
 			parent.add.image(game.config.width/2, game.config.height/2-50, 'hoorayText').setScale(0.3);
 		}
 
-		var recycleOverlap = function(player, recyclebin){
-			if(player.body.touching.down 
-				&& recyclebin.body.touching.up 
-				&& player.y < recyclebin.y-30
-				&& player.x < recyclebin.x+18
-				&& player.x > recyclebin.x-20)
-			{
-				if(!this.victory){
-					this.victory = true;
-					parent.stopGame()
-					player.body.allowGravity = false;
-					player.body.setVelocityY(0);
-					player.body.setVelocityX(0);
-					this.hitRecycleBin = recyclebin;
-					player.body.moves=false;
-					recyclebin.body.moves=false;
-					this.tween = parent.tweens.add({
-						targets: player,
-						x: recyclebin.x,
-						y: recyclebin.y,
-						ease: 'Linear',
-						duration: 500,
-						onComplete: onCompleteHandler,
-						onCompleteParams: [recyclebin]
-					});
-				} else {}
-			} else {}
-		}
-
-		var trashOverlap = function(player, trashbin){
-				parent.playerDeath();
-		}
+		var parent = this;
 
 
-		this.physics.add.overlap(this.player, this.recyclebinGroup, recycleOverlap);
+		this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap, null, this);
 
 		//keyboard access
 		this.cursors = this.input.keyboard.createCursorKeys();
 		this.inputs = this.input.keyboard.addKeys('ENTER');
 		//camera
 		this.cameras.main.setBounds(0,0, 1500, 0);
-		// this.cameras.main.startFollow(this.player);
 
   	this.addBackground();
 		this.addCloud();
@@ -255,6 +207,36 @@ class playGame extends Phaser.Scene{
 		});
 	}
 
+
+	recycleOverlap(player, recyclebin){
+			if(player.body.touching.down 
+				&& recyclebin.body.touching.up 
+				&& player.y < recyclebin.y-30
+				&& player.x < recyclebin.x+18
+				&& player.x > recyclebin.x-20)
+			{
+				if(!this.victory){
+					this.victory = true;
+					this.stopGame()
+					player.body.allowGravity = false;
+					player.body.setVelocityY(0);
+					player.body.setVelocityX(0);
+					this.hitRecycleBin = recyclebin;
+					player.body.moves=false;
+					recyclebin.body.moves=false;
+					this.tween = this.tweens.add({
+						targets: player,
+						x: recyclebin.x,
+						y: recyclebin.y,
+						ease: 'Linear',
+						duration: 500,
+						onComplete: this.onCompleteHandler,
+						onCompleteParams: [recyclebin]
+					});
+				} else {}
+			} else {}
+		}
+
 	update (){
   	if(this.victory){
 
@@ -268,7 +250,7 @@ class playGame extends Phaser.Scene{
 
 		  	let rightMostTrashbin = this.getRightMostTrashbin();
 				if(rightMostTrashbin < game.config.width*(0.75)){
-					if(this.numJumped >=10 && this.numJumped%5==0){
+					if(this.numJumped >=1 ){// && this.numJumped%5==0){
 						this.addRecyclebin();
 					} else {
 						this.addTrashbin();
@@ -476,14 +458,6 @@ class playGame extends Phaser.Scene{
   	this.gameOver=false;
 		this.gameStarted = false;
 
-  	// this.recyclebinGroup.getChildren().forEach(function(recyclebin){
-  	// 		recyclebin.destroy();
-  	// }, this);
-
-  	// this.trashbinGroup.getChildren().forEach(function(trashbin){
-  	// 		trashbin.destroy();
-  	// }, this);
-
   	this.trashbinGroup.clear(true, true);
   	this.recyclebinGroup.clear(true, true);
 
@@ -499,9 +473,8 @@ class playGame extends Phaser.Scene{
 		this.physics.add.collider(this.player, this.groundBody);
 
 		this.physics.add.overlap(this.player, this.trashbinGroup, this.playerDeath, null, this);
-		this.playerRecycleCollider = this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap);
 
-		this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap);
+		this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap, null, this);
 
 		this.groundGroup.getChildren().forEach(function(ground){
 			ground.setVelocityX(-130);
