@@ -38,14 +38,14 @@ class preloadGame extends Phaser.Scene {
   }
 
   create (){
-		// this.anims.create({
-		// 	key: 'closeBin',
-		// 	frames: [
-		// 			{ key: 'recyclebinClosed', frame: null }
-		// 	],
-		// 	frameRate: 2,
-		// 	repeat: false,
-		// });
+		this.anims.create({
+			key: 'closeBin',
+			frames: [
+					{ key: 'recyclebinClosed', frame: null }
+			],
+			frameRate: 2,
+			repeat: false,
+		});
 
 		this.scene.start("PlayGame");
   }
@@ -72,6 +72,11 @@ class playGame extends Phaser.Scene{
     this.recycleIcon;
     this.startLabel;
     this.jumpLabel;
+
+    this.loseModal;
+    this.resetLabel;
+
+    this.gameOver = false;
 	}
 
 	create() {
@@ -82,14 +87,14 @@ class playGame extends Phaser.Scene{
 
   	//this.add.image(180, 100, 'clouds').setScale(0.3);
 
-  	this.anims.create({
-			key: 'closeBin',
-			frames: [
-					{ key: 'recyclebinClosed', frame: null }
-			],
-			frameRate: 2,
-			repeat: false,
-		});
+  // 	this.anims.create({
+		// 	key: 'closeBin',
+		// 	frames: [
+		// 			{ key: 'recyclebinClosed', frame: null }
+		// 	],
+		// 	frameRate: 2,
+		// 	repeat: false,
+		// });
 
   	this.cloudGroup = this.add.group();
 
@@ -126,15 +131,11 @@ class playGame extends Phaser.Scene{
 				this.victory = true;
 			} else { }
 		};
-		this.playerRecycleCollider = this.physics.add.overlap(this.player, this.recyclebinGroup, recycleOverlap);
+		this.playerRecycleCollider = this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap);
 		//alternative use of overlap instead of collide function
 		var parent = this;
 
 		var onCompleteHandler = function(tween, targets, image){
-			console.log('handler');
-			console.log(tween);
-			console.log(targets[0]);
-			console.log(image);
 			image.anims.play('closeBin', true);
 			parent.add.image(game.config.width/2, game.config.height/2, 'victoryModal').setScale(0.5);
 			parent.add.image(game.config.width/2, game.config.height/2-50, 'hoorayText').setScale(0.3);
@@ -181,7 +182,7 @@ class playGame extends Phaser.Scene{
 		this.inputs = this.input.keyboard.addKeys('ENTER');
 		//camera
 		this.cameras.main.setBounds(0,0, 1500, 0);
-		this.cameras.main.startFollow(this.player);
+		// this.cameras.main.startFollow(this.player);
 
   	this.addBackground();
 		this.addCloud();
@@ -216,18 +217,49 @@ class playGame extends Phaser.Scene{
 		this.jumpLabel.y+50, 
 		'Press ENTER to start', 
 		{color: 'black', fontSize: 20, fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
-		this.startLabel.x = this.startLabel.x - this.startLabel.width/2
+		this.startLabel.x = this.startLabel.x - this.startLabel.width/2;
+
+		this.loseModal = parent.add.image(game.config.width/2, game.config.height/2-30, 'victoryModal').setScale(0.5);
+		this.resetLabel = this.add.text(
+		this.loseModal.x, 
+		this.loseModal.y, 
+		'Press ENTER to restart', 
+		{color: 'black', fontSize: 20, fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
+		this.resetLabel.x = this.resetLabel.x - this.resetLabel.width/2;
+		this.loseModal.setVisible(false);
+		this.resetLabel.setVisible(false);
+
+		this.input.keyboard.on('keydown_ENTER', function(event){
+			if(parent.victory){
+
+			} else {
+				if(parent.gameStarted && !parent.gameOver){
+
+				} else if (parent.gameOver){
+					parent.restartGame();
+				} else {
+					parent.hideStartModal();
+  				parent.gameStarted = true;
+				}
+			}
+		});
+
+		this.input.keyboard.on('keydown_SPACE', function(event){
+			if(!parent.victory){
+				if(parent.gameStarted && !parent.gameOver){
+					if(parent.player.body.touching.down){
+	    			parent.player.setVelocityY(-425);
+	    		}
+				}
+			}
+		});
 	}
 
 	update (){
   	if(this.victory){
 
   	} else {
-  		if(this.gameStarted){
-	    	if(this.cursors.space.isDown && this.player.body.touching.down){
-	    		this.player.setVelocityY(-425);
-	    	}
-
+  		if(this.gameStarted && !this.gameOver){
 	    	this.recycleBackground();
 		  	this.recycleCloud();
 		  	this.recycleGround();
@@ -235,29 +267,19 @@ class playGame extends Phaser.Scene{
 		  	this.recycleRecyclebin();
 
 		  	let rightMostTrashbin = this.getRightMostTrashbin();
-				if(rightMostTrashbin < game.config.width/2){
+				if(rightMostTrashbin < game.config.width*(0.75)){
 					if(this.numJumped >=10 && this.numJumped%5==0){
 						this.addRecyclebin();
 					} else {
 						this.addTrashbin();
 					}
 				}
+			} else if(this.gameOver) {
+		  	this.recycleCloud();
   		} else {
   			this.recycleBackground();
 		  	this.recycleCloud();
 		  	this.recycleGround();
-  			if(this.inputs.ENTER.isDown){
-					this.startModal.setVisible(false);
-			    this.trashLabel.setVisible(false);
-			    this.trashIcon.setVisible(false);
-			    this.recycleLabel.setVisible(false);
-			    this.recycleIcon.setVisible(false);
-			    this.startLabel.setVisible(false);
-			    this.jumpLabel.setVisible(false);
-
-
-  				this.gameStarted = true;
-  			} 
   		}
   	}
   }
@@ -297,7 +319,6 @@ class playGame extends Phaser.Scene{
 	addCloud(){
 		let rightMostCloud = this.getRightMostCloud();
 		if(rightMostCloud < (game.config.width)){
-			console.log('adcloud');
 			let cloud = this.physics.add.image(rightMostCloud + game.config.width*0.75 + Phaser.Math.Between(100,300), 
 				100 + Phaser.Math.Between(-20,50), "clouds").setScale(Phaser.Math.FloatBetween(0.18,0.32));
 			cloud.body.allowGravity = false;
@@ -362,31 +383,27 @@ class playGame extends Phaser.Scene{
 
 	addTrashbin(){
 		let rightMostTrashbin = this.getRightMostTrashbin();
-		// console.log('add outside if');
-		// if(rightMostTrashbin < game.config.width/2){
-			let trashbin = this.physics.add.sprite(game.config.width + Phaser.Math.Between(30,200), 
-				250, "trashbin").setScale(0.3);
 
-			console.log('add trashbin');
-			trashbin.body.setVelocityX(-130);
-			this.trashbinGroup.add(trashbin);
-			trashbin.setDepth(0);
+		let trashbin = this.physics.add.sprite(game.config.width + Phaser.Math.Between(30,170), 
+			250, "trashbin").setScale(0.3);
 
-			//side by side trashbin
-			console.log(this.numJumped);
-			if(this.numJumped>4){
-				let coin = Phaser.Math.Between(0,2);
-				console.log('coin');
-				console.log(coin);
-				if(coin == 0){
-					let trashbin2 = this.physics.add.image(trashbin.x + trashbin.displayWidth, 
-				250, "trashbin").setScale(0.3);
-					trashbin2.body.setVelocityX(-130);
-					this.trashbinGroup.add(trashbin2);
-					trashbin2.setDepth(0);
-				}
+		trashbin.body.setVelocityX(-130);
+		this.trashbinGroup.add(trashbin);
+		trashbin.setDepth(0);
+
+		//side by side trashbin
+
+		if(this.numJumped>4){
+			let coin = Phaser.Math.Between(0,2);
+			if(coin == 0){
+				let trashbin2 = this.physics.add.image(trashbin.x + trashbin.displayWidth, 
+			250, "trashbin").setScale(0.3);
+				trashbin2.body.setVelocityX(-130);
+				this.trashbinGroup.add(trashbin2);
+				trashbin2.setDepth(0);
 			}
-			this.numJumped++;
+		}
+		this.numJumped++;
 	}
 
 	getRightMostTrashbin(){
@@ -403,22 +420,14 @@ class playGame extends Phaser.Scene{
 	recycleTrashbin(){
 		this.trashbinGroup.getChildren().forEach(function(trashbin){
   		if(trashbin.x < -trashbin.displayWidth){
-  			// let rightMostTrashbin = this.getRightMostTrashbin();
-  			// trashbin.x = game.config.width + Phaser.Math.Between(30,100);
-  			// trashbin.y = 250;
-  			// trashbin.setDepth(0); 
   			trashbin.destroy();
   		}
   	}, this);
 	}
 
 	addRecyclebin(){
-		// console.log('add outside if');
-		// if(rightMostTrashbin < game.config.width/2){
 		let recyclebin = this.physics.add.sprite(game.config.width + Phaser.Math.Between(30,200), 
 			250, "recyclebin").setScale(0.3);
-
-		console.log('add trashbin');
 		recyclebin.body.setVelocityX(-130);
 		this.recyclebinGroup.add(recyclebin);
 		recyclebin.setDepth(0);
@@ -428,10 +437,6 @@ class playGame extends Phaser.Scene{
 	recycleRecyclebin(){
 		this.recyclebinGroup.getChildren().forEach(function(recyclebin){
   		if(recyclebin.x < -recyclebin.displayWidth){
-  			// let rightMostTrashbin = this.getRightMostTrashbin();
-  			// trashbin.x = game.config.width + Phaser.Math.Between(30,100);
-  			// trashbin.y = 250;
-  			// trashbin.setDepth(0); 
   			recyclebin.destroy();
   		}
   	}, this);
@@ -456,11 +461,78 @@ class playGame extends Phaser.Scene{
 
   	this.trashbinGroup.getChildren().forEach(function(trashbin){
   		trashbin.setVelocityX(0);
-  	})
+  	});
 	}
 
   playerDeath(){
   	this.player.disableBody(true,true);
   	this.stopGame();
+  	this.loseModal.setVisible(true);
+		this.resetLabel.setVisible(true);
+		this.gameOver = true;
+  }
+
+  restartGame(){
+  	this.gameOver=false;
+		this.gameStarted = false;
+
+  	// this.recyclebinGroup.getChildren().forEach(function(recyclebin){
+  	// 		recyclebin.destroy();
+  	// }, this);
+
+  	// this.trashbinGroup.getChildren().forEach(function(trashbin){
+  	// 		trashbin.destroy();
+  	// }, this);
+
+  	this.trashbinGroup.clear(true, true);
+  	this.recyclebinGroup.clear(true, true);
+
+  	this.resetLabel.setVisible(false);
+  	this.loseModal.setVisible(false);
+
+  	this.numJumped = 0;
+
+  	this.showStartModal();
+
+  	//player
+    this.player = this.physics.add.sprite(100, 200, 'bottle').setScale(0.3);
+		this.physics.add.collider(this.player, this.groundBody);
+
+		this.physics.add.overlap(this.player, this.trashbinGroup, this.playerDeath, null, this);
+		this.playerRecycleCollider = this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap);
+
+		this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap);
+
+		this.groundGroup.getChildren().forEach(function(ground){
+			ground.setVelocityX(-130);
+  	}, this);
+
+  	this.cloudGroup.getChildren().forEach(function(cloud){
+			cloud.setVelocityX(-15);
+		});
+
+		this.backgroundGroup.getChildren().forEach(function(background){
+			background.setVelocityX(-30);
+		});
+  }
+
+  showStartModal(){
+		this.startModal.setVisible(true);
+    this.trashLabel.setVisible(true);
+    this.trashIcon.setVisible(true);
+    this.recycleLabel.setVisible(true);
+    this.recycleIcon.setVisible(true);
+    this.startLabel.setVisible(true);
+    this.jumpLabel.setVisible(true);
+  }
+
+  hideStartModal(){
+		this.startModal.setVisible(false);
+    this.trashLabel.setVisible(false);
+    this.trashIcon.setVisible(false);
+    this.recycleLabel.setVisible(false);
+    this.recycleIcon.setVisible(false);
+    this.startLabel.setVisible(false);
+    this.jumpLabel.setVisible(false);
   }
 }
