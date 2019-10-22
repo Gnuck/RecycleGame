@@ -62,8 +62,16 @@ class playGame extends Phaser.Scene{
     this.hitRecycleBin;
     this.playerRecycleCollider;
     this.cursors;
-    this.gameStarted = true;
+    this.gameStarted = false;
     this.numJumped = 0;
+
+    this.startModal;
+    this.trashLabel;
+    this.trashIcon;
+    this.recycleLabel;
+    this.recycleIcon;
+    this.startLabel;
+    this.jumpLabel;
 	}
 
 	create() {
@@ -170,19 +178,45 @@ class playGame extends Phaser.Scene{
 
 		//keyboard access
 		this.cursors = this.input.keyboard.createCursorKeys();
-
+		this.inputs = this.input.keyboard.addKeys('ENTER');
 		//camera
 		this.cameras.main.setBounds(0,0, 1500, 0);
 		this.cameras.main.startFollow(this.player);
 
-		this.addBackground();
-
+  	this.addBackground();
 		this.addCloud();
-
 		this.addGround();
 
-		//to be moved to start function
-		this.addTrashbin();
+		//start modal
+		this.startModal = parent.add.image(game.config.width/2, game.config.height/2-30, 'victoryModal').setScale(0.5);
+		
+		this.trashLabel = this.add.text(
+			this.startModal.x-this.startModal.displayWidth/2 +30, 
+			this.startModal.y-this.startModal.displayHeight/2 + 30, 
+			'Avoid Trash bins:', 
+			{color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
+		this.trashIcon = parent.add.image(this.trashLabel.x+this.trashLabel.width+30, this.trashLabel.y+5, 'trashbin').setScale(0.2);
+
+		this.recycleLabel = this.add.text(
+			this.trashLabel.x, 
+			this.trashLabel.y+50, 
+			'Jump INTO Recycle bins:', 
+			{color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
+		this.recycleIcon = parent.add.image(this.recycleLabel.x+this.recycleLabel.width+30, this.recycleLabel.y+5, 'recyclebin').setScale(0.2);
+
+		this.jumpLabel = this.add.text(
+		this.startModal.x, 
+		this.recycleLabel.y+50, 
+		'Press SPACE to jump', 
+		{color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
+		this.jumpLabel.x = this.jumpLabel.x- this.jumpLabel.width/2;
+
+		this.startLabel = this.add.text(
+		this.startModal.x, 
+		this.jumpLabel.y+50, 
+		'Press ENTER to start', 
+		{color: 'black', fontSize: 20, fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
+		this.startLabel.x = this.startLabel.x - this.startLabel.width/2
 	}
 
 	update (){
@@ -209,9 +243,22 @@ class playGame extends Phaser.Scene{
 					}
 				}
   		} else {
+  			this.recycleBackground();
+		  	this.recycleCloud();
+		  	this.recycleGround();
+  			if(this.inputs.ENTER.isDown){
+					this.startModal.setVisible(false);
+			    this.trashLabel.setVisible(false);
+			    this.trashIcon.setVisible(false);
+			    this.recycleLabel.setVisible(false);
+			    this.recycleIcon.setVisible(false);
+			    this.startLabel.setVisible(false);
+			    this.jumpLabel.setVisible(false);
 
+
+  				this.gameStarted = true;
+  			} 
   		}
-
   	}
   }
 
