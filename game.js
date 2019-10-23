@@ -123,6 +123,7 @@ class playGame extends Phaser.Scene{
 			image.anims.play('closeBin', true);
 			parent.add.image(game.config.width/2, game.config.height/2, 'victoryModal').setScale(0.5);
 			parent.add.image(game.config.width/2, game.config.height/2-50, 'hoorayText').setScale(0.3);
+			window.parent.postMessage("UserVictory", "*")
 		}
 
 		var parent = this;
@@ -160,14 +161,14 @@ class playGame extends Phaser.Scene{
 		this.jumpLabel = this.add.text(
 		this.startModal.x, 
 		this.recycleLabel.y+50, 
-		'Press SPACE to jump', 
+		'Tap or Press SPACE to jump', 
 		{color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
 		this.jumpLabel.x = this.jumpLabel.x- this.jumpLabel.width/2;
 
 		this.startLabel = this.add.text(
 		this.startModal.x, 
 		this.jumpLabel.y+50, 
-		'Press ENTER to start', 
+		'Tap or Press ENTER to start', 
 		{color: 'black', fontSize: 20, fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
 		this.startLabel.x = this.startLabel.x - this.startLabel.width/2;
 
@@ -175,7 +176,7 @@ class playGame extends Phaser.Scene{
 		this.resetLabel = this.add.text(
 		this.loseModal.x, 
 		this.loseModal.y, 
-		'Press ENTER to restart', 
+		'Tap or Press ENTER to restart', 
 		{color: 'black', fontSize: 20, fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
 		this.resetLabel.x = this.resetLabel.x - this.resetLabel.width/2;
 		this.loseModal.setVisible(false);
@@ -205,6 +206,29 @@ class playGame extends Phaser.Scene{
 				}
 			}
 		});
+
+		this.input.on('pointerup', function(pointer){
+			if(!parent.victory){
+				if(parent.gameStarted && !parent.gameOver){
+
+				} else if (parent.gameOver){
+					parent.restartGame();
+				} else {
+					parent.hideStartModal();
+  				parent.gameStarted = true;
+				}
+			}
+	 	});
+
+	 	this.input.on('pointerdown', function(pointer){
+			if(!parent.victory){
+				if(parent.gameStarted && !parent.gameOver){
+					if(parent.player.body.touching.down){
+	    			parent.player.setVelocityY(-425);
+	    		}
+				} 
+			}
+	 	});
 	}
 
 
