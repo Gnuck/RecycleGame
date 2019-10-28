@@ -126,8 +126,14 @@ class playGame extends Phaser.Scene{
 
 		this.onCompleteHandler = function(tween, targets, image){
 			image.anims.play('closeBin', true);
-			parent.add.image(game.config.width/2, game.config.height/2, 'victoryModal').setScale(0.5);
-			parent.add.image(game.config.width/2, game.config.height/2-50, 'hoorayText').setScale(0.3);
+			var victoryModal = parent.add.image(game.config.width/2, game.config.height/2, 'victoryModal').setScale(0.5);
+			var hoorayText = parent.add.image(game.config.width/2, game.config.height/2-50, 'hoorayText').setScale(0.3);
+			var victoryDetail = parent.add.text(
+				hoorayText.x, 
+				hoorayText.y+ 60, 
+				'Enter your information\nbelow for a chance to win!', 
+				{textAlign: 'center', align: 'center', color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
+				victoryDetail.x = victoryDetail.x - victoryDetail.width/2;
 			window.parent.postMessage("UserVictory", "*")
 		}
 
@@ -159,7 +165,7 @@ class playGame extends Phaser.Scene{
 		this.recycleLabel = this.add.text(
 			this.trashLabel.x, 
 			this.trashLabel.y+50, 
-			'Jump INTO Recycle bins:', 
+			'Jump into Green Bags:', 
 			{color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
 		this.recycleIcon = parent.add.image(this.recycleLabel.x+this.recycleLabel.width+30, this.recycleLabel.y+5, 'recyclebin').setScale(0.2);
 
