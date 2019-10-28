@@ -159,7 +159,7 @@ class playGame extends Phaser.Scene{
 		this.recycleLabel = this.add.text(
 			this.trashLabel.x, 
 			this.trashLabel.y+50, 
-			'Jump INTO Recycle bins:', 
+			'Jump into Green Bag:', 
 			{color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
 		this.recycleIcon = parent.add.image(this.recycleLabel.x+this.recycleLabel.width+30, this.recycleLabel.y+5, 'recyclebin').setScale(0.2);
 
