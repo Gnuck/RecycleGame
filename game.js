@@ -10,6 +10,8 @@ window.onload = function() {
     	height: 332,
     	autoCenter: Phaser.Scale.CENTER_BOTH
     },
+    width: 656,
+    height: 332,
     physics: {
       default: 'arcade',
       arcade: {
