@@ -6,8 +6,6 @@ window.onload = function() {
     scale: {
     	parent: 'gameContainer',
     	mode: Phaser.Scale.FIT,
-    	width: 656,
-    	height: 332,
     	autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
