@@ -3,6 +3,13 @@ let game;
 window.onload = function() {
   var config = {
     type: Phaser.AUTO,
+    scale: {
+    	parent: 'gameContainer',
+    	mode: Phaser.Scale.FIT,
+    	width: 656,
+    	height: 332,
+    	autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     physics: {
       default: 'arcade',
       arcade: {
