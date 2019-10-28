@@ -4,14 +4,13 @@ window.onload = function() {
   var config = {
     type: Phaser.AUTO,
     scale: {
-    	parent: 'div.gameManager',
-    	mode: Phaser.Scale.FIT,
-    	height: 323,
+    	mode: Phaser.Scale.SHOW_ALL,
     	width: 656,
+    	height: 323,
+    	pageAlignHorizontally: true,
+    	pageAlignVertically: true,
     	autoCenter: Phaser.Scale.CENTER_BOTH
     },
-    height: 323,
-    width: 656,
     physics: {
       default: 'arcade',
       arcade: {
@@ -546,3 +545,5 @@ class playGame extends Phaser.Scene{
     this.jumpLabel.setVisible(false);
   }
 }
+
+
