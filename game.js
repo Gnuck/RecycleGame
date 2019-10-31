@@ -34,14 +34,20 @@ class preloadGame extends Phaser.Scene {
 		this.load.image('background', 'assets/background.png');
 		this.load.image('ground', 'assets/foreground.png');
 		this.load.image('bottle', 'assets/bottle.png');
-		this.load.image('platform', 'assets/platform.png')
-		this.load.image('clouds', 'assets/clouds.png')
+		this.load.image('platform', 'assets/platform.png');
+		this.load.image('clouds', 'assets/clouds.png');
 		this.load.image('trashbin', 'assets/trashbin.png');
 		this.load.image('recyclebin', 'assets/recyclebin.png');
 		this.load.image('recyclebinClosed', 'assets/recyclebinClosed.png');
 		this.load.image('victoryModal', 'assets/victoryModal.png');
 		this.load.image('hoorayText', 'assets/hoorayText.png');
-  }
+		this.load.audio('bg_music', 'assets/backgroundMusic.mp3', {
+      instances: 1
+    });
+    this.load.audio('jumpSound', 'assets/jumpSound.wav', {
+    	instances: 1
+    });
+  };
 
   create (){
 		this.anims.create({
@@ -85,6 +91,9 @@ class playGame extends Phaser.Scene{
     this.gameOver = false;
 
     this.onCompleteHandler;
+
+    this.bg_music;
+    this.jumpsound;
 	}
 
 	create() {
@@ -118,12 +127,37 @@ class playGame extends Phaser.Scene{
 
 		this.physics.add.overlap(this.player, this.trashbinGroup, this.playerDeath, null, this);
 
+		this.backgroundMusic = this.sound.add('bg_music', 
+			{
+			    mute: false,
+			    volume: 1,
+			    rate: 1,
+			    detune: 0,
+			    seek: 0,
+			    loop: true,
+			    delay: 0
+			}
+		);
+		this.jumpsound = this.sound.add('jumpSound',
+			{
+				mute: false,
+		    volume: 1,
+		    rate: 1,
+		    detune: 0,
+		    seek: 0,
+		    loop: false,
+		    delay: 0
+			}
+		);
+
 		//test to see that collision happens from top of recycle bin, bottom of player
 		var recycleCollide = function(player,recyclebin){
 			if(recyclebin.body.touching.up && player.body.touching.down){
 				this.victory = true;
 			} else { }
 		};
+
+		var parent = this;
 
 		this.onCompleteHandler = function(tween, targets, image){
 			image.anims.play('closeBin', true);
@@ -135,10 +169,10 @@ class playGame extends Phaser.Scene{
 				'Enter your information\nbelow for a chance to win!', 
 				{textAlign: 'center', align: 'center', color: 'black', fontFamily: 'Verdana, "Time New Roman", Tahoma, serif' });
 				victoryDetail.x = victoryDetail.x - victoryDetail.width/2;
-			window.parent.postMessage("UserVictory", "*")
+			window.parent.postMessage("UserVictory", "*");
+			parent.backgroundMusic.stop();
 		}
 
-		var parent = this;
 
 
 		this.physics.add.overlap(this.player, this.recyclebinGroup, this.recycleOverlap, null, this);
@@ -205,6 +239,8 @@ class playGame extends Phaser.Scene{
 				} else {
 					parent.hideStartModal();
   				parent.gameStarted = true;
+
+					parent.backgroundMusic.play();
 				}
 			}
 		});
@@ -214,6 +250,7 @@ class playGame extends Phaser.Scene{
 				if(parent.gameStarted && !parent.gameOver){
 					if(parent.player.body.touching.down){
 	    			parent.player.setVelocityY(-425);
+	    			parent.jumpsound.play();
 	    		}
 				}
 			}
@@ -228,6 +265,8 @@ class playGame extends Phaser.Scene{
 				} else {
 					parent.hideStartModal();
   				parent.gameStarted = true;
+
+					parent.backgroundMusic.play();
 				}
 			}
 	 	});
@@ -237,6 +276,7 @@ class playGame extends Phaser.Scene{
 				if(parent.gameStarted && !parent.gameOver){
 					if(parent.player.body.touching.down){
 	    			parent.player.setVelocityY(-425);
+	    			parent.jumpsound.play();
 	    		}
 				} 
 			}
@@ -487,6 +527,7 @@ class playGame extends Phaser.Scene{
   	this.stopGame();
   	this.loseModal.setVisible(true);
 		this.resetLabel.setVisible(true);
+		this.backgroundMusic.stop();
 		this.gameOver = true;
   }
 
